@@ -81,32 +81,34 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Profile Header & Stats */}
-      <div className="relative -mt-20 sm:-mt-24 px-4 sm:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-          <Avatar
-            src={profile.avatar_url}
-            alt={profile.full_name}
-            size="xl"
-            isVerified={profile.is_verified}
-            className="ring-4 ring-nature-surface rounded-full shadow-lg"
-          />
-          <div className="space-y-1.5">
+      <div className="px-4 sm:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-5">
+          <div className="-mt-14 sm:-mt-16 relative z-10 shrink-0">
+            <Avatar
+              src={profile.avatar_url}
+              alt={profile.full_name}
+              size="xl"
+              isVerified={profile.is_verified}
+              className="ring-4 ring-nature-dark rounded-full shadow-lg"
+            />
+          </div>
+          <div className="space-y-1 pt-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-white drop-shadow-md">
+              <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-nature-parchment">
                 {profile.full_name}
               </h1>
               {profile.is_verified && (
                 <span title="Verified Photographer" className="inline-flex">
-                  <ShieldCheck className="w-5 h-5 text-nature-accent drop-shadow" />
+                  <ShieldCheck className="w-5 h-5 text-nature-accent" />
                 </span>
               )}
             </div>
-            <p className="text-xs sm:text-sm text-neutral-200 font-mono drop-shadow">
+            <p className="text-xs sm:text-sm text-nature-textMuted font-mono break-all">
               @{profile.username}
               {currentUser?.id === profile.id && currentUserEmail ? ` · ${currentUserEmail}` : ''}
             </p>
             {profile.location && (
-              <div className="flex items-center gap-1.5 text-xs text-amber-200 drop-shadow">
+              <div className="flex items-center gap-1.5 text-xs text-nature-accent">
                 <MapPin className="w-3.5 h-3.5" />
                 <span>{profile.location}</span>
               </div>

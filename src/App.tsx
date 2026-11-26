@@ -57,6 +57,14 @@ export const App: React.FC = () => {
       }
     });
 
+    let syncTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleSync = () => {
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        void initSupabaseSync();
+      }, 400);
+    };
+
     // Real-time Database Changes + Presence
     const presenceKey = `nl-${Math.random().toString(36).slice(2, 10)}`;
     const realtimeChannel = client
@@ -72,7 +80,7 @@ export const App: React.FC = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'photos' },
         (payload) => {
-          void initSupabaseSync();
+          scheduleSync();
           if (payload.eventType === 'INSERT') {
             const newRow = payload.new as Record<string, unknown>;
             const current = useNatureStore.getState().currentUser;
@@ -100,7 +108,7 @@ export const App: React.FC = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'comments' },
         (payload) => {
-          void initSupabaseSync();
+          scheduleSync();
           if (payload.eventType === 'INSERT') {
             const newRow = payload.new as Record<string, unknown>;
             const current = useNatureStore.getState().currentUser;
@@ -123,14 +131,14 @@ export const App: React.FC = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'challenges' },
         () => {
-          void initSupabaseSync();
+          scheduleSync();
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
         () => {
-          void initSupabaseSync();
+          scheduleSync();
         }
       )
       .subscribe(async (status) => {
@@ -140,6 +148,7 @@ export const App: React.FC = () => {
       });
 
     return () => {
+      if (syncTimer) clearTimeout(syncTimer);
       authListener.subscription.unsubscribe();
       void client.removeChannel(realtimeChannel);
     };

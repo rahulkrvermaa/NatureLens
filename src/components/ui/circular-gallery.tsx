@@ -52,24 +52,38 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({
   // Expansive panoramic cylinder radius so cards curve gracefully in 3D
   const radius = 600;
 
-  // Silky-smooth continuous rotation animation loop
+  // Silky-smooth continuous rotation animation loop (paused when off-screen)
   useEffect(() => {
+    const el = containerRef.current;
+    let isVisible = true;
+    let observer: IntersectionObserver | null = null;
+
+    if (el && typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          isVisible = entry.isIntersecting;
+        },
+        { threshold: 0.05 }
+      );
+      observer.observe(el);
+    }
+
     let lastTime = performance.now();
 
     const animate = (now: number) => {
       const delta = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
-      if (!isDraggingRef.current) {
+      if (isVisible && !isDraggingRef.current) {
         if (autoplay && !isHoveredRef.current) {
-          // Ambient glide
           targetRotationRef.current -= 5.5 * delta;
         }
 
-        // Smooth physics damping interpolation
         const diff = targetRotationRef.current - rotationRef.current;
-        rotationRef.current += diff * Math.min(1, 8.5 * delta);
-        setRotation(rotationRef.current);
+        if (Math.abs(diff) > 0.005) {
+          rotationRef.current += diff * Math.min(1, 8.5 * delta);
+          setRotation(rotationRef.current);
+        }
       }
 
       rafIdRef.current = requestAnimationFrame(animate);
@@ -78,6 +92,7 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({
     rafIdRef.current = requestAnimationFrame(animate);
     return () => {
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      if (observer) observer.disconnect();
     };
   }, [autoplay]);
 

@@ -25,15 +25,16 @@ export const ParallaxHero: React.FC<ParallaxHeroProps> = ({
 
   const updateLayers = useCallback(
     (cursorPosition: number, xVal: number, yVal: number, rotateDeg: number) => {
+      const halfWidth = window.innerWidth / 2;
       layerRefs.current.forEach((el, index) => {
         if (!el) return;
         const layer = layers[index];
         if (!layer) return;
 
         const { speedX, speedY, speedZ, rotation } = layer;
-        const computedLeft = parseFloat(getComputedStyle(el).left.replace('px', '')) || 0;
-        const isInLeft = computedLeft < window.innerWidth / 2 ? 1 : -1;
-        const zValue = (cursorPosition - computedLeft) * isInLeft * 0.1;
+        const elLeft = el.offsetLeft || halfWidth;
+        const isInLeft = elLeft < halfWidth ? 1 : -1;
+        const zValue = (cursorPosition - elLeft) * isInLeft * 0.1;
 
         el.style.transform = `perspective(2300px) translateZ(${
           zValue * speedZ
@@ -48,10 +49,9 @@ export const ParallaxHero: React.FC<ParallaxHeroProps> = ({
         const textSpeedZ = 0.08;
         const textRotation = 0.04;
 
-        const computedLeft =
-          parseFloat(getComputedStyle(textRef.current).left.replace('px', '')) || 0;
-        const isInLeft = computedLeft < window.innerWidth / 2 ? 1 : -1;
-        const zValue = (cursorPosition - computedLeft) * isInLeft * 0.1;
+        const textLeft = textRef.current.offsetLeft || halfWidth;
+        const isInLeft = textLeft < halfWidth ? 1 : -1;
+        const zValue = (cursorPosition - textLeft) * isInLeft * 0.1;
 
         textRef.current.style.transform = `perspective(2300px) translateZ(${
           zValue * textSpeedZ
@@ -64,17 +64,25 @@ export const ParallaxHero: React.FC<ParallaxHeroProps> = ({
   );
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const newXValue = e.clientX - window.innerWidth / 2;
-      const newYValue = e.clientY - window.innerHeight / 2;
-      const newRotateDegree = (newXValue / (window.innerWidth / 2)) * 20;
+    const container = containerRef.current;
+    if (!container) return;
 
-      updateLayers(e.clientX, newXValue, newYValue, newRotateDegree);
+    let rafId: number | null = null;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const newXValue = e.clientX - window.innerWidth / 2;
+        const newYValue = e.clientY - window.innerHeight / 2;
+        const newRotateDegree = (newXValue / (window.innerWidth / 2)) * 20;
+        updateLayers(e.clientX, newXValue, newYValue, newRotateDegree);
+      });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mousemove', handleMouseMove);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [updateLayers]);
 
