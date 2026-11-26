@@ -8,7 +8,7 @@ export const ChallengesPage: React.FC = () => {
   const challenges = useNatureStore((s) => s.challenges);
 
   return (
-    <div className="min-h-screen py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <div className="max-w-2xl">
         <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-nature-accent mb-2">
           <Trophy className="w-4 h-4 text-nature-accent" />

@@ -67,6 +67,14 @@ export const ParallaxHero: React.FC<ParallaxHeroProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
+    // Only run mouse-driven 3D parallax on fine-pointer desktop devices to keep mobile smooth
+    const supportsHover =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: fine)').matches;
+
+    if (!supportsHover) return;
+
     let rafId: number | null = null;
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId !== null) return;
@@ -86,53 +94,68 @@ export const ParallaxHero: React.FC<ParallaxHeroProps> = ({
     };
   }, [updateLayers]);
 
+  const isMultiLayerScene = layers.length > 6;
+
   return (
     <section
       ref={containerRef}
       className={cn(
-        'relative h-[78vh] sm:h-[88vh] min-h-[520px] sm:min-h-[600px] w-full overflow-hidden select-none transition-colors duration-700',
+        'relative h-[68vh] sm:h-[82vh] lg:h-[88vh] min-h-[460px] sm:min-h-[580px] w-full overflow-hidden select-none transition-colors duration-500',
         skyClassName,
         className
       )}
     >
-      <div className="absolute inset-0 z-[100] pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_55%,rgba(0,0,0,0.75))]" />
+      <div className="absolute inset-0 z-[100] pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_45%,rgba(0,0,0,0.78))]" />
 
-      {layers.map((layer, index) => (
-        <img
-          key={`${layer.alt}-${index}`}
-          ref={(el) => {
-            layerRefs.current[index] = el;
-          }}
-          src={layer.src}
-          alt={layer.alt}
-          className={cn(
-            'absolute pointer-events-none max-w-none transition-transform duration-[450ms] ease-out',
-            layer.className
-          )}
-          style={{
-            width: layer.width,
-            top: layer.initialTop,
-            left: layer.initialLeft,
-            zIndex: layer.zIndex,
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
-      ))}
+      {/* Responsive Layer Wrapper: scales multi-layer mountain scene cleanly on mobile */}
+      <div
+        className={cn(
+          'absolute inset-0 pointer-events-none',
+          isMultiLayerScene && 'scale-[0.55] sm:scale-[0.8] lg:scale-100 origin-center'
+        )}
+      >
+        {layers.map((layer, index) => {
+          const hideOnSmallMobile = isMultiLayerScene && index > 4 && layer.alt.startsWith('fog-');
+          return (
+            <img
+              key={`${layer.alt}-${index}`}
+              ref={(el) => {
+                layerRefs.current[index] = el;
+              }}
+              src={layer.src}
+              alt={layer.alt}
+              decoding="async"
+              className={cn(
+                'absolute pointer-events-none max-w-none will-change-transform',
+                hideOnSmallMobile && 'hidden sm:block',
+                layer.className
+              )}
+              style={{
+                width: layer.width,
+                top: layer.initialTop,
+                left: layer.initialLeft,
+                zIndex: layer.zIndex,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+          );
+        })}
+      </div>
 
       <div
         ref={textRef}
-        className="absolute z-[9] text-white text-center pointer-events-auto transition-transform duration-[450ms] ease-out w-full px-4"
+        className="absolute z-[9] text-white text-center pointer-events-none w-full px-5 will-change-transform"
         style={{
-          top: 'calc(50% - 80px)',
+          top: 'calc(50% - 56px)',
           left: '50%',
           transform: 'translate(-50%, -50%)',
         }}
       >
-        <h1 className="font-black tracking-tight text-white/95 drop-shadow-2xl text-[clamp(2.75rem,10.5vw,10.5rem)] leading-[0.85]">
+        <h1 className="font-black tracking-tight text-white/95 drop-shadow-2xl text-[clamp(1.85rem,8.5vw,9.5rem)] leading-[0.88] break-words">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-4 text-[11px] sm:text-sm font-mono uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white/85 drop-shadow px-2">
+          <p className="mt-3 sm:mt-4 text-[11px] sm:text-sm font-mono uppercase tracking-[0.16em] sm:tracking-[0.25em] text-white/85 drop-shadow max-w-xl mx-auto">
             {subtitle}
           </p>
         )}

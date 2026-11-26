@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -18,7 +19,7 @@ import { Photo } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
 import { Button } from '@/components/common/Button';
 import { formatCompactNumber, formatEditorialDate } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/context/useToast';
 
 import { useNatureStore } from '@/store/useNatureStore';
@@ -35,11 +36,13 @@ export const PhotoDownloadModal: React.FC<PhotoDownloadModalProps> = ({
   onClose,
 }) => {
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [selectedResolution, setSelectedResolution] = useState<'original' | '4k' | '1080p' | 'mobile'>('original');
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const currentUser = useNatureStore((s) => s.currentUser);
   const photos = useNatureStore((s) => s.photos);
   const likedPhotoIds = useNatureStore((s) => s.likedPhotoIds);
   const savedPhotoIds = useNatureStore((s) => s.savedPhotoIds);
@@ -52,8 +55,15 @@ export const PhotoDownloadModal: React.FC<PhotoDownloadModalProps> = ({
   const isSaved = livePhoto ? savedPhotoIds.includes(livePhoto.id) || (livePhoto.is_saved_by_user ?? false) : false;
   const likesCount = livePhoto?.likes_count ?? 0;
 
+  const lastTrackedOpenRef = React.useRef<string | null>(null);
+
   useEffect(() => {
-    if (isOpen && photo?.id) {
+    if (!isOpen) {
+      lastTrackedOpenRef.current = null;
+      return;
+    }
+    if (photo?.id && lastTrackedOpenRef.current !== photo.id) {
+      lastTrackedOpenRef.current = photo.id;
       setDownloadSuccess(false);
       incrementView(photo.id);
     }
@@ -69,19 +79,27 @@ export const PhotoDownloadModal: React.FC<PhotoDownloadModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen || !photo || !livePhoto) return null;
-
   const handleLike = () => {
+    if (!livePhoto) return;
     const nextLiked = toggleLike(livePhoto.id);
     showToast(nextLiked ? 'Added to liked photographs' : 'Removed from liked photographs', 'info');
   };
 
   const handleSaveToggle = () => {
+    if (!livePhoto) return;
     const nextSaved = toggleSave(livePhoto.id);
     showToast(nextSaved ? 'Saved to your personal collection' : 'Removed from collection', 'info');
   };
 
   const handleDownload = async () => {
+    if (!photo) return;
+    if (!currentUser) {
+      showToast('Please sign up or sign in to download photographs.', 'info');
+      onClose();
+      navigate('/signup');
+      return;
+    }
+
     setIsDownloading(true);
     try {
       const response = await fetch(photo.display_url);
@@ -107,6 +125,7 @@ export const PhotoDownloadModal: React.FC<PhotoDownloadModalProps> = ({
   };
 
   const handleShare = () => {
+    if (!photo) return;
     const url = `${window.location.origin}/photo/${photo.id}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
@@ -116,9 +135,19 @@ export const PhotoDownloadModal: React.FC<PhotoDownloadModalProps> = ({
     }
   };
 
-  return (
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
+  const modalContent = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      {isOpen && photo && livePhoto && (
+        <div key="photo-download-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto overscroll-contain">
         {/* Dark Backdrop Scrim for Focus */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -368,8 +397,14 @@ export const PhotoDownloadModal: React.FC<PhotoDownloadModalProps> = ({
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 };
 
 export default PhotoDownloadModal;

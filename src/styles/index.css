@@ -8,14 +8,14 @@
   --nl-surface-alt: 245 245 243;  /* #F5F5F3 Soft Stone */
   --nl-elevated: 241 241 238;     /* #F1F1EE Warm Mist */
   --nl-border: 228 228 224;       /* #E4E4E0 Crisp Hairline */
-  --nl-border-subtle: rgba(24, 24, 27, 0.06);
+  --nl-border-subtle: 24 24 27;
   --nl-accent: 180 83 9;          /* #B45309 Deep Amber Gold */
   --nl-accent-hover: 146 64 14;   /* #92400E Rich Ochre */
-  --nl-accent-muted: rgba(180, 83, 9, 0.12);
+  --nl-accent-muted: 180 83 9;
   --nl-emerald: 21 128 61;        /* #15803D Forest Emerald */
   --nl-text-primary: 20 22 21;    /* #141615 Deep Charcoal */
   --nl-text-muted: 82 86 84;      /* #525654 Slate Moss */
-  --nl-text-subtle: 120 124 122;  /* #787C7A Stone Gray */
+  --nl-text-subtle: 96 100 98;    /* #606462 Stone Gray (WCAG AA contrast) */
 }
 
 .dark {
@@ -24,10 +24,10 @@
   --nl-surface-alt: 21 29 24;     /* #151D18 Stitch Surface Low */
   --nl-elevated: 36 44 38;        /* #242C26 Stitch Surface High */
   --nl-border: 46 55 49;          /* #2E3731 Stitch Surface Highest */
-  --nl-border-subtle: rgba(220, 229, 220, 0.08);
+  --nl-border-subtle: 220 229 220;
   --nl-accent: 182 211 155;       /* #B6D39B Stitch Sage Moss */
   --nl-accent-hover: 210 239 181; /* #D2EFB5 Stitch Primary */
-  --nl-accent-muted: rgba(182, 211, 155, 0.16);
+  --nl-accent-muted: 182 211 155;
   --nl-emerald: 175 209 147;      /* #AFD193 Stitch Secondary */
   --nl-text-primary: 220 229 220; /* #DCE5DC Stitch On Surface */
   --nl-text-muted: 196 200 187;   /* #C4C8BB Stitch On Surface Variant */
@@ -109,4 +109,33 @@ body {
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes nl-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-nl-marquee {
+  display: flex;
+  width: max-content;
+  animation: nl-marquee 34s linear infinite;
+  will-change: transform;
+}
+
+.group\/marquee:hover .animate-nl-marquee,
+.group\/marquee:focus-within .animate-nl-marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-nl-marquee {
+    animation: none;
+    flex-wrap: wrap;
+    width: 100%;
+  }
 }

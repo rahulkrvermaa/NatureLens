@@ -51,8 +51,17 @@ export const WallpaperGridCard: React.FC<WallpaperGridCardProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Inspect ${photo.title}`}
       onClick={() => onClick(photo)}
-      className="group cursor-pointer flex flex-col space-y-2.5 select-none"
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick(photo);
+        }
+      }}
+      className="group cursor-pointer flex flex-col space-y-2.5 select-none rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nature-accent"
     >
       {/* 16:10 Image Container */}
       <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-nature-surface border border-nature-border shadow-sm transition-all duration-300 group-hover:border-nature-accent/60 group-hover:shadow-md">
@@ -72,9 +81,9 @@ export const WallpaperGridCard: React.FC<WallpaperGridCardProps> = ({
           )}
         />
 
-        {/* Hover Action Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3.5">
-          <div className="flex items-center justify-between w-full">
+        {/* Action Overlay (always visible on mobile/touch; hover-reveal on md+) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/35 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3.5 pointer-events-none">
+          <div className="flex items-center justify-between w-full pointer-events-auto md:pointer-events-none md:group-hover:pointer-events-auto">
             <span className="text-[10px] uppercase tracking-wider font-semibold px-2.5 py-1 rounded-full bg-black/55 backdrop-blur-md text-white border border-white/20">
               {photo.category?.name || 'Nature'}
             </span>
@@ -94,7 +103,7 @@ export const WallpaperGridCard: React.FC<WallpaperGridCardProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full pointer-events-auto md:pointer-events-none md:group-hover:pointer-events-auto">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-nature-accent text-white text-xs font-semibold shadow-md">
               <Download className="w-3.5 h-3.5" />
               <span>Inspect & Download</span>

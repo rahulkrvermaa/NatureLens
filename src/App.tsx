@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRouter } from './routes';
 import { ToastProvider } from './context/ToastContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useNatureStore } from './store/useNatureStore';
 import { supabase } from './lib/supabase';
 import { syncAuthUserToProfile } from './services/supabaseService';
@@ -22,6 +23,7 @@ export const App: React.FC = () => {
   const setCurrentUser = useNatureStore((s) => s.setCurrentUser);
   const setActivePhotographers = useNatureStore((s) => s.setActivePhotographers);
   const pushNotification = useNatureStore((s) => s.pushNotification);
+  const tickRealtimeActivity = useNatureStore((s) => s.tickRealtimeActivity);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -38,7 +40,14 @@ export const App: React.FC = () => {
     void initSupabaseSync();
 
     const client = supabase;
-    if (!client) return;
+    if (!client) {
+      tickRealtimeActivity();
+      const demoInterval = setInterval(() => {
+        if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+        tickRealtimeActivity();
+      }, 12000);
+      return () => clearInterval(demoInterval);
+    }
 
     // Sync active auth session & listen for Google OAuth / Email sign-in changes
     void client.auth.getSession().then(async ({ data }) => {
@@ -152,14 +161,16 @@ export const App: React.FC = () => {
       authListener.subscription.unsubscribe();
       void client.removeChannel(realtimeChannel);
     };
-  }, [initSupabaseSync, setCurrentUser, setActivePhotographers, pushNotification]);
+  }, [initSupabaseSync, setCurrentUser, setActivePhotographers, pushNotification, tickRealtimeActivity]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AppRouter />
-      </ToastProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <AppRouter />
+        </ToastProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

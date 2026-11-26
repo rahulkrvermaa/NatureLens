@@ -64,16 +64,25 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose, handlePrev, handleNext]);
 
-  if (!isOpen || !currentPhoto) return null;
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-nature-dark/95 backdrop-blur-xl flex flex-col justify-between"
-      >
+      {isOpen && currentPhoto && (
+        <motion.div
+          key="lightbox-modal"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] bg-nature-dark/95 backdrop-blur-xl flex flex-col justify-between overscroll-contain"
+        >
         {/* Top Header Bar */}
         <div className="flex items-center justify-between p-4 sm:p-6 z-20 border-b border-nature-border/40">
           <div className="flex items-center gap-3">
@@ -98,10 +107,10 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Toggle Macro Lens */}
+            {/* Toggle Macro Lens (desktop/mouse only) */}
             <button
               onClick={() => setUseLens(!useLens)}
-              className={`p-2 rounded-full border text-xs flex items-center gap-1.5 transition-all ${
+              className={`hidden md:flex p-2 rounded-full border text-xs items-center gap-1.5 transition-all ${
                 useLens
                   ? 'bg-nature-accent text-white border-nature-accent font-semibold shadow-sm'
                   : 'bg-white/80 text-nature-textMuted border-nature-border hover:text-nature-parchment'
@@ -146,11 +155,11 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
         </div>
 
         {/* Center Stage: Photo Display & Nav Buttons */}
-        <div className="relative flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden">
+        <div className="relative flex-1 flex items-center justify-center py-4 px-12 sm:p-8 sm:px-16 overflow-hidden">
           {/* Previous Arrow */}
           <button
             onClick={handlePrev}
-            className="absolute left-4 z-20 p-3 rounded-full bg-white/90 border border-nature-border text-nature-parchment hover:bg-nature-accent hover:text-white transition-all shadow-md backdrop-blur-md"
+            className="absolute left-2 sm:left-4 z-20 p-2.5 sm:p-3 rounded-full bg-white/90 border border-nature-border text-nature-parchment hover:bg-nature-accent hover:text-white transition-all shadow-md"
             title="Previous (Left Arrow)"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -181,7 +190,7 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
           {/* Next Arrow */}
           <button
             onClick={handleNext}
-            className="absolute right-4 z-20 p-3 rounded-full bg-white/90 border border-nature-border text-nature-parchment hover:bg-nature-accent hover:text-white transition-all shadow-md backdrop-blur-md"
+            className="absolute right-2 sm:right-4 z-20 p-2.5 sm:p-3 rounded-full bg-white/90 border border-nature-border text-nature-parchment hover:bg-nature-accent hover:text-white transition-all shadow-md"
             title="Next (Right Arrow)"
           >
             <ChevronRight className="w-5 h-5" />
@@ -301,6 +310,7 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
           )}
         </AnimatePresence>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 };

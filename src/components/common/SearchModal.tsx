@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -149,11 +150,19 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   const quickPills = ['Dolomites', 'Aurora', 'Redwood', 'Wildlife', 'Arctic', 'Fuji'];
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
 
-  return (
+  const modalContent = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 overflow-y-auto">
+      {isOpen && (
+        <div key="search-modal" className="fixed inset-0 z-[100] flex items-start justify-center pt-12 sm:pt-20 px-4 overflow-hidden overscroll-contain">
         {/* Backdrop Scrim */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -169,7 +178,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: -10 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative z-10 w-full max-w-2xl rounded-3xl bg-white border border-nature-border shadow-2xl overflow-hidden backdrop-blur-xl"
+          className="relative z-10 w-full max-w-2xl rounded-3xl bg-nature-surface border border-nature-border shadow-2xl overflow-hidden"
         >
           {/* Search Input Bar */}
           <div className="relative flex items-center px-5 py-4 border-b border-nature-border bg-nature-elevated/50">
@@ -221,7 +230,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           </div>
 
           {/* Search Results Area */}
-          <div className="max-h-[60vh] overflow-y-auto p-3 space-y-4">
+          <div className="max-h-[60vh] overflow-y-auto overscroll-contain p-3 space-y-4">
             {/* Photographs Section */}
             {results.photos.length > 0 && (
               <div className="space-y-1">
@@ -235,9 +244,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   return (
                     <div
                       key={photo.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleSelectItem('photo', photo)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelectItem('photo', photo);
+                        }
+                      }}
                       onMouseEnter={() => setSelectedIndex(itemIndex)}
-                      className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition-all ${
+                      className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nature-accent ${
                         isSelected
                           ? 'bg-nature-accent/15 border border-nature-accent/40 shadow-sm'
                           : 'hover:bg-nature-dark/40 border border-transparent'
@@ -287,9 +304,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   return (
                     <div
                       key={cat.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleSelectItem('category', cat)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelectItem('category', cat);
+                        }
+                      }}
                       onMouseEnter={() => setSelectedIndex(itemIndex)}
-                      className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition-all ${
+                      className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nature-accent ${
                         isSelected
                           ? 'bg-nature-accent/15 border border-nature-accent/40 shadow-sm'
                           : 'hover:bg-nature-dark/40 border border-transparent'
@@ -332,9 +357,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   return (
                     <div
                       key={profile.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleSelectItem('profile', profile)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelectItem('profile', profile);
+                        }
+                      }}
                       onMouseEnter={() => setSelectedIndex(itemIndex)}
-                      className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition-all ${
+                      className={`flex items-center justify-between p-2.5 rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nature-accent ${
                         isSelected
                           ? 'bg-nature-accent/15 border border-nature-accent/40 shadow-sm'
                           : 'hover:bg-nature-dark/40 border border-transparent'
@@ -389,6 +422,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 };

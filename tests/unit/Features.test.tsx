@@ -7,8 +7,9 @@ import { UploadPage } from '@/pages/upload/UploadPage';
 import { PhotoDetailPage } from '@/pages/public/PhotoDetailPage';
 import { ChallengeDetailPage } from '@/pages/public/ChallengeDetailPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
+import { PhotoDownloadModal } from '@/components/gallery/PhotoDownloadModal';
 import { useNatureStore } from '@/store/useNatureStore';
-import { DEMO_CHALLENGES, DEMO_PHOTOS } from '@/lib/mockData';
+import { DEMO_CHALLENGES, DEMO_PHOTOS, DEMO_PROFILES } from '@/lib/mockData';
 
 describe('Interactive & Submit Features', () => {
   beforeEach(() => {
@@ -23,7 +24,8 @@ describe('Interactive & Submit Features', () => {
     });
   });
 
-  it('UploadPage publishes a new photo into the live store on submit', async () => {
+  it('UploadPage publishes a new photo into the live store when signed in', async () => {
+    useNatureStore.setState({ currentUser: DEMO_PROFILES[0] });
     const initialCount = useNatureStore.getState().photos.length;
 
     render(
@@ -117,5 +119,51 @@ describe('Interactive & Submit Features', () => {
       expect(useNatureStore.getState().currentUser).not.toBeNull();
     });
     expect(useNatureStore.getState().currentUser?.username).toBe('elena_frost');
+  });
+
+  it('redirects unauthenticated user to /signup when trying to submit or download', async () => {
+    render(
+      <MemoryRouter initialEntries={['/upload']}>
+        <ToastProvider>
+          <Routes>
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/signup" element={<div>Signup Gate Page</div>} />
+          </Routes>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    const mockFile = new File(['dummy-image-bytes'], 'peak.jpg', { type: 'image/jpeg' });
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
+    await screen.findByAltText('Upload preview');
+
+    const titleInput = screen.getByPlaceholderText(/Alpenglow Over Tre Cime/i);
+    fireEvent.change(titleInput, { target: { value: 'Unauth Photo' } });
+    fireEvent.submit(titleInput.closest('form')!);
+
+    await waitFor(() => {
+      expect(screen.getByText('Signup Gate Page')).toBeInTheDocument();
+    });
+
+    const handleClose = () => {};
+    render(
+      <MemoryRouter initialEntries={['/explore']}>
+        <ToastProvider>
+          <Routes>
+            <Route
+              path="/explore"
+              element={<PhotoDownloadModal photo={DEMO_PHOTOS[0]} isOpen={true} onClose={handleClose} />}
+            />
+            <Route path="/signup" element={<div>Download Signup Redirect</div>} />
+          </Routes>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Download High-Resolution Image/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Download Signup Redirect')).toBeInTheDocument();
+    });
   });
 });

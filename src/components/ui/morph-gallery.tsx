@@ -674,11 +674,10 @@ export default function MorphGallery({
       {thumbnails && items.length > 1 && (
         <ul
           className={
-            "absolute inset-x-0 bottom-8 z-10 mx-auto flex w-max max-w-[calc(100%-2rem)] gap-2.5 " +
+            "absolute inset-x-0 bottom-4 sm:bottom-8 z-10 mx-auto flex w-max max-w-[calc(100%-2rem)] gap-2 sm:gap-2.5 " +
             "list-none overflow-x-auto scroll-smooth p-0 pb-2.5 " +
             "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:rounded [&::-webkit-scrollbar-track]:bg-white/10 " +
-            "[&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-nature-accent/40 " +
-            "max-sm:hidden"
+            "[&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-nature-accent/40"
           }
         >
           {items.map((item, i) => (
@@ -705,8 +704,8 @@ export default function MorphGallery({
                   height={50}
                   loading="lazy"
                   decoding="async"
-                  className="block object-cover h-[50px] w-[80px]"
-                  style={{ maxWidth: "none", width: 80, height: 50 }}
+                  className="block object-cover h-[36px] w-[56px] sm:h-[50px] sm:w-[80px]"
+                  style={{ maxWidth: "none" }}
                 />
               </button>
             </li>

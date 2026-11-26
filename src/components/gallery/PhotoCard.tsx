@@ -4,6 +4,8 @@ import { Heart, Bookmark, Eye, MapPin, Maximize2 } from 'lucide-react';
 import { Photo } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
 import { formatCompactNumber } from '@/lib/utils';
+import { useNatureStore } from '@/store/useNatureStore';
+import { useToast } from '@/context/useToast';
 
 export interface PhotoCardProps {
   photo: Photo;
@@ -16,28 +18,30 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
   priority = false,
   onOpenLightbox,
 }) => {
+  const { showToast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isLiked, setIsLiked] = useState(photo.is_liked_by_user ?? false);
-  const [likesCount, setLikesCount] = useState(photo.likes_count);
-  const [isSaved, setIsSaved] = useState(photo.is_saved_by_user ?? false);
+
+  const likedPhotoIds = useNatureStore((s) => s.likedPhotoIds);
+  const savedPhotoIds = useNatureStore((s) => s.savedPhotoIds);
+  const toggleLike = useNatureStore((s) => s.toggleLike);
+  const toggleSave = useNatureStore((s) => s.toggleSave);
+
+  const isLiked = likedPhotoIds.includes(photo.id) || (photo.is_liked_by_user ?? false);
+  const isSaved = savedPhotoIds.includes(photo.id) || (photo.is_saved_by_user ?? false);
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isLiked) {
-      setIsLiked(false);
-      setLikesCount((prev) => Math.max(0, prev - 1));
-    } else {
-      setIsLiked(true);
-      setLikesCount((prev) => prev + 1);
-    }
+    const nextLiked = toggleLike(photo.id);
+    showToast(nextLiked ? 'Added to liked photographs' : 'Removed from liked', 'info');
   };
 
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsSaved(!isSaved);
+    const nextSaved = toggleSave(photo.id);
+    showToast(nextSaved ? 'Saved to your collection' : 'Removed from collection', 'info');
   };
 
   const handleLightboxClick = (e: React.MouseEvent) => {
@@ -75,10 +79,10 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
           }`}
         />
 
-        {/* Ambient Vignette Gradient on Hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-nature-dark/90 via-nature-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
+        {/* Ambient Vignette Gradient (always visible on mobile/touch; hover-reveal on md+) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-nature-dark/90 via-nature-dark/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none">
           {/* Top Row: Category Pill & Actions */}
-          <div className="flex items-center justify-between w-full pointer-events-auto">
+          <div className="flex items-center justify-between w-full pointer-events-auto md:pointer-events-none md:group-hover:pointer-events-auto">
             <span className="text-[11px] uppercase tracking-wider font-semibold px-2.5 py-1 rounded-full bg-nature-dark/70 backdrop-blur-md text-nature-accent border border-nature-accent/30">
               {photo.category?.name || 'Nature'}
             </span>
@@ -109,7 +113,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
           </div>
 
           {/* Bottom Row: Metadata & Quick Interaction */}
-          <div className="space-y-2 pointer-events-auto">
+          <div className="space-y-2 pointer-events-auto md:pointer-events-none md:group-hover:pointer-events-auto">
             {photo.location_name && (
               <div className="flex items-center gap-1 text-[11px] text-nature-textMuted">
                 <MapPin className="w-3 h-3 text-nature-accent" />
@@ -152,7 +156,7 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({
                   aria-label="Like photograph"
                 >
                   <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current text-red-400' : ''}`} />
-                  <span>{formatCompactNumber(likesCount)}</span>
+                  <span>{formatCompactNumber(photo.likes_count)}</span>
                 </button>
               </div>
             </div>

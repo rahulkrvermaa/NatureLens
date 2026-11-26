@@ -4,6 +4,7 @@ import { ArrowLeft, Award, ShieldCheck, CheckCircle2, Clock } from 'lucide-react
 import { Button } from '@/components/common/Button';
 import { useNatureStore } from '@/store/useNatureStore';
 import { useToast } from '@/context/useToast';
+import { usePageMeta } from '@/lib/seo';
 
 function formatCountdown(endDate: string): string {
   const diff = new Date(endDate).getTime() - Date.now();
@@ -40,6 +41,13 @@ export const ChallengeDetailPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [challenge]);
 
+  usePageMeta({
+    title: challenge ? `${challenge.title} — NatureLens Challenge` : 'Challenge — NatureLens',
+    description: challenge?.description || 'Join ethical wildlife and landscape photography challenges on NatureLens.',
+    image: challenge?.cover_image_url,
+    canonicalPath: challenge ? `/challenges/${challenge.slug}` : undefined,
+  });
+
   if (!challenge) return null;
 
   const handleEnter = () => {
@@ -49,7 +57,7 @@ export const ChallengeDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
       <Link
         to="/challenges"
         className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-nature-textMuted hover:text-nature-accent transition-colors"

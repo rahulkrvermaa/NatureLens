@@ -107,9 +107,9 @@ export const ImageComparisonSlider: React.FC<ImageComparisonSliderProps> = ({
         <img
           src={beforeImage}
           alt={altBefore}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none max-w-none"
+          className="absolute inset-0 h-full object-cover pointer-events-none max-w-none"
           style={{
-            width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '100%',
+            width: `${(100 / sliderPosition) * 100}%`,
           }}
           loading="lazy"
         />

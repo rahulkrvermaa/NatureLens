@@ -81,6 +81,37 @@ interface NatureState {
 
 const INITIAL_COMMENTS: Record<string, Comment[]> = {};
 
+const VIEWED_SESSION_KEY = 'naturelens-viewed-photos';
+const viewedInMemory = new Set<string>();
+
+const hasViewedInSession = (photoId: string): boolean => {
+  if (viewedInMemory.has(photoId)) return true;
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = window.sessionStorage.getItem(VIEWED_SESSION_KEY);
+    if (!raw) return false;
+    const list = JSON.parse(raw) as string[];
+    return Array.isArray(list) && list.includes(photoId);
+  } catch {
+    return false;
+  }
+};
+
+const markViewedInSession = (photoId: string) => {
+  viewedInMemory.add(photoId);
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = window.sessionStorage.getItem(VIEWED_SESSION_KEY);
+    const list = raw ? (JSON.parse(raw) as string[]) : [];
+    if (!list.includes(photoId)) {
+      list.push(photoId);
+      window.sessionStorage.setItem(VIEWED_SESSION_KEY, JSON.stringify(list));
+    }
+  } catch {
+    // ignore sessionStorage quota/privacy errors
+  }
+};
+
 const channel =
   typeof window !== 'undefined' && 'BroadcastChannel' in window
     ? new BroadcastChannel('naturelens-realtime')
@@ -278,6 +309,9 @@ export const useNatureStore = create<NatureState>()(
         },
 
         incrementView: (photoId) => {
+          if (hasViewedInSession(photoId)) return;
+          markViewedInSession(photoId);
+
           const { photos, dbConnected } = get();
           const target = photos.find((p) => p.id === photoId);
           const nextViews = target ? target.views_count + 1 : 1;
@@ -590,36 +624,11 @@ export const useNatureStore = create<NatureState>()(
         },
 
         tickRealtimeActivity: () => {
+          // Keep photo likes and views authentic (no synthetic increments).
           set((state) => {
-            if (state.dbConnected || state.photos.length === 0) return state;
-            const randomIndex = Math.floor(Math.random() * state.photos.length);
-            const target = state.photos[randomIndex];
-            const deltaViews = Math.floor(Math.random() * 4) + 1;
-            const shouldLike = Math.random() > 0.72;
-            const deltaActive = Math.floor(Math.random() * 5) - 2;
-
+            if (state.dbConnected) return state;
             return {
-              activePhotographers: Math.max(98, Math.min(240, state.activePhotographers + deltaActive)),
-              photos: state.photos.map((p, idx) =>
-                idx === randomIndex
-                  ? {
-                      ...p,
-                      views_count: p.views_count + deltaViews,
-                      likes_count: p.likes_count + (shouldLike ? 1 : 0),
-                    }
-                  : p
-              ),
-              liveEvents: shouldLike
-                ? [
-                    {
-                      id: `ev-${Date.now()}`,
-                      message: `Community viewer appreciated "${target.title}"`,
-                      timestamp: new Date().toISOString(),
-                      photoId: target.id,
-                    },
-                    ...state.liveEvents.slice(0, 9),
-                  ]
-                : state.liveEvents,
+              activePhotographers: Math.max(1, state.activePhotographers),
             };
           });
         },

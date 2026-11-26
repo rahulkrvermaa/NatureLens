@@ -7,6 +7,7 @@ import { MasonryGrid } from '@/components/gallery/MasonryGrid';
 import { PhotoDownloadModal } from '@/components/gallery/PhotoDownloadModal';
 import { Photo } from '@/types';
 import { useNatureStore } from '@/store/useNatureStore';
+import { usePageMeta } from '@/lib/seo';
 
 export const CategoryDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -17,6 +18,13 @@ export const CategoryDetailPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'wallpaper' | 'masonry'>('wallpaper');
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  usePageMeta({
+    title: category ? `${category.name} Photography — NatureLens` : 'Category Not Found — NatureLens',
+    description: category?.description || 'Explore curated nature photography by biome on NatureLens.',
+    image: category?.cover_image_url,
+    canonicalPath: category ? `/category/${category.slug}` : undefined,
+  });
 
   const handleCardClick = (photo: Photo) => {
     setSelectedPhoto(photo);
@@ -43,7 +51,7 @@ export const CategoryDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
       {/* Back link */}
       <Link
         to="/categories"

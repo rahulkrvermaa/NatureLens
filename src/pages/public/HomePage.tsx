@@ -7,7 +7,7 @@ import { CategoriesSection } from './home/CategoriesSection';
 import { EditorsSelectionSection } from './home/EditorsSelectionSection';
 import { TrendingSection } from './home/TrendingSection';
 import { FeaturedPhotographersSection } from './home/FeaturedPhotographersSection';
-import { ChallengesSection } from './home/ChallengesSection';
+import { TopHonoredSection } from './home/TopHonoredSection';
 import { EthicsManifestoSection } from './home/EthicsManifestoSection';
 import { DeveloperSection } from './home/DeveloperSection';
 import { LightboxModal } from '@/components/gallery/LightboxModal';
@@ -43,7 +43,7 @@ export const HomePage: React.FC = () => {
       <MorphShowcaseSection />
       <CategoriesSection />
       <FeaturedPhotographersSection />
-      <ChallengesSection />
+      <TopHonoredSection onPhotoClick={handlePhotoDownloadClick} />
       <EthicsManifestoSection />
       <DeveloperSection />
 

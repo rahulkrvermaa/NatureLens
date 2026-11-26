@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { UploadCloud, Image as ImageIcon, Camera, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { UploadCloud, Image as ImageIcon, Camera, ShieldCheck, CheckCircle2, ArrowRight, Lock } from 'lucide-react';
 import { DEMO_CATEGORIES } from '@/lib/mockData';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -9,6 +9,7 @@ import { useToast } from '@/context/useToast';
 import { uploadImageToStorage } from '@/services/supabaseService';
 
 export const UploadPage: React.FC = () => {
+  const navigate = useNavigate();
   const addPhoto = useNatureStore((s) => s.addPhoto);
   const currentUser = useNatureStore((s) => s.currentUser);
   const dbConnected = useNatureStore((s) => s.dbConnected);
@@ -71,6 +72,11 @@ export const UploadPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) {
+      showToast('Please sign up or sign in to submit a photograph.', 'info');
+      navigate('/signup');
+      return;
+    }
     if (!selectedFile || !previewUrl || !title.trim()) return;
     setIsSubmitting(true);
 
@@ -117,7 +123,7 @@ export const UploadPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="py-12 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
       <div className="space-y-2">
         <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-nature-parchment">
           Submit Nature Photograph
@@ -126,6 +132,27 @@ export const UploadPage: React.FC = () => {
           Upload your high-resolution capture. GPS coordinates are automatically stripped from public display versions to protect habitats.
         </p>
       </div>
+
+      {!currentUser && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-nature-surface border border-nature-accent/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start sm:items-center gap-3 text-xs sm:text-sm text-nature-parchment">
+            <Lock className="w-4 h-4 text-nature-accent shrink-0 mt-0.5 sm:mt-0" />
+            <span>Sign up or sign in to publish your photographs to NatureLens.</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link to="/signup">
+              <Button variant="primary" size="sm">
+                Sign Up
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {publishedPhotoId ? (
         <div className="p-10 rounded-3xl bg-nature-surface border border-nature-border text-center space-y-5 shadow-sm">

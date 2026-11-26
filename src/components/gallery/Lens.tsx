@@ -1,7 +1,14 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { ZoomIn, ZoomOut } from 'lucide-react';
+
+const getSupportsLens = (): boolean => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return true;
+  }
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+};
 
 export interface LensProps {
   children: React.ReactNode;
@@ -24,42 +31,66 @@ export const Lens: React.FC<LensProps> = ({
 }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [supportsLens, setSupportsLens] = useState<boolean>(getSupportsLens);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setSupportsLens(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      setSupportsLens(event.matches);
+      if (!event.matches) {
+        setIsHovering(false);
+      }
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (isStatic || !containerRef.current) return;
+      if (!supportsLens || isStatic || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       setMousePosition({ x, y });
     },
-    [isStatic]
+    [supportsLens, isStatic]
   );
 
   const currentX = isStatic ? position.x : mousePosition.x;
   const currentY = isStatic ? position.y : mousePosition.y;
+  const lensEnabled = supportsLens && isActive;
 
   return (
     <div className="relative group/lens">
       <div
         ref={containerRef}
-        onMouseEnter={() => setIsHovering(true)}
+        onMouseEnter={() => {
+          if (supportsLens) setIsHovering(true);
+        }}
         onMouseLeave={() => setIsHovering(false)}
         onMouseMove={handleMouseMove}
         className={cn(
           'relative overflow-hidden rounded-2xl select-none',
-          isActive && isHovering && 'cursor-none',
+          lensEnabled && isHovering && 'cursor-none',
           className
         )}
       >
         {/* Original Content */}
         {children}
 
-        {/* Magnifying Lens Circle */}
+        {/* Magnifying Lens Circle (desktop/fine-pointer only) */}
         <AnimatePresence>
-          {isActive && (isHovering || isStatic) && (
+          {lensEnabled && (isHovering || isStatic) && (
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -101,8 +132,8 @@ export const Lens: React.FC<LensProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Floating lens trigger control */}
-      {showControls && (
+      {/* Floating lens trigger control (desktop/fine-pointer only) */}
+      {showControls && supportsLens && (
         <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
           <button
             type="button"

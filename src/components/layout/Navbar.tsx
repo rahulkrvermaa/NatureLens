@@ -91,10 +91,10 @@ export const Navbar: React.FC = () => {
     <>
       <header
         className={cn(
-          'sticky top-0 z-40 w-full transition-all duration-300',
+          'sticky top-0 z-40 w-full transition-colors duration-200',
           isScrolled
-            ? 'bg-nature-surface/85 backdrop-blur-xl border-b border-nature-border py-3 shadow-sm'
-            : 'bg-nature-dark/70 backdrop-blur-md border-b border-transparent py-4'
+            ? 'bg-nature-surface/95 border-b border-nature-border py-3 shadow-sm'
+            : 'bg-nature-dark/95 border-b border-transparent py-4'
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -212,7 +212,7 @@ export const Navbar: React.FC = () => {
                             'flex items-start gap-2.5 p-2 rounded-xl transition-colors text-xs',
                             n.is_read
                               ? 'hover:bg-nature-elevated/60 text-nature-textMuted'
-                              : 'bg-nature-accentMuted/50 hover:bg-nature-accentMuted text-nature-parchment'
+                              : 'bg-nature-accentMuted/15 hover:bg-nature-accentMuted/25 text-nature-parchment'
                           )}
                         >
                           <Avatar src={n.actor.avatar_url} alt={n.actor.full_name} size="sm" />
@@ -242,7 +242,7 @@ export const Navbar: React.FC = () => {
                   size="sm"
                   leftIcon={<PlusCircle className="w-4 h-4 text-nature-accent" />}
                 >
-                  Submit Photo
+                  📸 Share Your Photo
                 </Button>
               </Link>
 
@@ -335,20 +335,80 @@ export const Navbar: React.FC = () => {
                 </Link>
               ))}
             </div>
-            <div className="pt-2 border-t border-nature-border flex items-center gap-2">
-              <Link to="/upload" className="flex-1">
+            <div className="pt-2 border-t border-nature-border space-y-2">
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-nature-elevated/60 border border-nature-border">
+                <div className="flex items-center gap-2 text-xs font-medium text-nature-parchment">
+                  <Bell className="w-4 h-4 text-nature-accent" />
+                  <span>Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-nature-accent text-white text-[10px] font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllNotificationsRead}
+                    className="text-[11px] text-nature-accent hover:underline"
+                  >
+                    Mark read
+                  </button>
+                )}
+              </div>
+              {notifications.length > 0 && (
+                <div className="max-h-36 overflow-y-auto space-y-1 px-1">
+                  {notifications.slice(0, 3).map((n) => (
+                    <Link
+                      key={n.id}
+                      to={n.entity_id ? `/photo/${n.entity_id}` : '/explore'}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        'flex items-center gap-2 p-2 rounded-xl text-xs transition-colors',
+                        n.is_read
+                          ? 'text-nature-textMuted'
+                          : 'bg-nature-accentMuted/15 text-nature-parchment'
+                      )}
+                    >
+                      <Avatar src={n.actor.avatar_url} alt={n.actor.full_name} size="sm" />
+                      <span className="truncate">
+                        <strong className="font-semibold">{n.actor.full_name}</strong>{' '}
+                        {n.type === 'like' ? 'liked your photo' : 'commented'}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="pt-2 border-t border-nature-border flex flex-wrap items-center gap-2">
+              <Link to="/upload" onClick={() => setMobileMenuOpen(false)} className="flex-1 min-w-[140px]">
                 <Button variant="outline" size="sm" className="w-full justify-center">
-                  Submit Photo
+                  📸 Share Your Photo
                 </Button>
               </Link>
               {currentUser ? (
-                <Link to={`/@${currentUser.username}`} className="flex-1">
-                  <Button variant="primary" size="sm" className="w-full justify-center" leftIcon={<UserIcon className="w-4 h-4" />}>
-                    Profile
-                  </Button>
-                </Link>
+                <>
+                  <Link to={`/@${currentUser.username}`} onClick={() => setMobileMenuOpen(false)} className="flex-1 min-w-[120px]">
+                    <Button variant="primary" size="sm" className="w-full justify-center" leftIcon={<UserIcon className="w-4 h-4" />}>
+                      Profile{savedCount > 0 ? ` (${savedCount})` : ''}
+                    </Button>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                      showToast('Signed out of NatureLens', 'info');
+                    }}
+                    className="p-2 rounded-xl bg-nature-elevated border border-nature-border text-nature-textMuted hover:text-red-500 transition-colors"
+                    title="Sign out"
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </>
               ) : (
-                <Link to="/login" className="flex-1">
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 min-w-[120px]">
                   <Button variant="primary" size="sm" className="w-full justify-center">
                     Sign In
                   </Button>

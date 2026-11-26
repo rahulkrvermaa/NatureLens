@@ -23,6 +23,7 @@ import { Lens } from '@/components/gallery/Lens';
 import { ImageComparisonSlider } from '@/components/gallery/ImageComparisonSlider';
 import { formatCompactNumber, formatEditorialDate } from '@/lib/utils';
 import { useNatureStore } from '@/store/useNatureStore';
+import { usePageMeta } from '@/lib/seo';
 import { useToast } from '@/context/useToast';
 
 export const PhotoDetailPage: React.FC = () => {
@@ -47,12 +48,40 @@ export const PhotoDetailPage: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const lastViewedIdRef = React.useRef<string | null>(null);
 
   useEffect(() => {
-    if (photo?.id) {
+    if (photo?.id && lastViewedIdRef.current !== photo.id) {
+      lastViewedIdRef.current = photo.id;
       incrementView(photo.id);
     }
   }, [photo?.id, incrementView]);
+
+  const photoJsonLd = React.useMemo(
+    () =>
+      photo
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'Photograph',
+            name: photo.title,
+            description: photo.description || photo.title,
+            image: photo.display_url,
+            creator: photo.author
+              ? { '@type': 'Person', name: photo.author.full_name }
+              : undefined,
+            datePublished: photo.created_at,
+          }
+        : undefined,
+    [photo]
+  );
+
+  usePageMeta({
+    title: photo ? `${photo.title} — NatureLens` : 'Photograph — NatureLens',
+    description: photo?.description || `${photo?.title || 'Nature photograph'} on NatureLens.`,
+    image: photo?.display_url,
+    canonicalPath: photo ? `/photo/${photo.id}` : undefined,
+    jsonLd: photoJsonLd,
+  });
 
   if (!photo) return null;
 
@@ -96,7 +125,7 @@ export const PhotoDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <div className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       {/* Back button & Control Bar */}
       <div className="flex items-center justify-between">
         <Link
@@ -240,7 +269,7 @@ export const PhotoDetailPage: React.FC = () => {
               </h3>
             </div>
 
-            <form onSubmit={handleCommentSubmit} className="flex gap-3">
+            <form onSubmit={handleCommentSubmit} className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
               <input
                 type="text"
                 placeholder="Share constructive critique or ask about the field conditions..."

@@ -35,10 +35,10 @@ function buildBackdropSlideLayers(imageUrl: string, alt: string): ParallaxLayer[
       width: '115%',
       className: 'h-[115%] object-cover brightness-75',
     },
-    ...FOG_OVERLAY_LAYERS.slice(0, 3).map((fog, i) => ({
+    ...FOG_OVERLAY_LAYERS.slice(0, 2).map((fog, i) => ({
       ...fog,
       zIndex: 12 + i,
-      className: 'opacity-40',
+      className: 'opacity-35 hidden sm:block',
     })),
   ];
 }
@@ -102,12 +102,12 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
         subtitle={current.subtitle}
         skyClassName={current.skyClassName}
       >
-        {/* Left & Right Slide Controls */}
+        {/* Desktop Side Arrows (hidden on mobile so they never overlap text) */}
         <button
           type="button"
           onClick={prevSlide}
           aria-label="Previous hero scene"
-          className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-[120] p-2.5 rounded-full bg-black/40 hover:bg-black/70 text-white border border-white/20 backdrop-blur-md transition-all"
+          className="hidden sm:flex absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/75 text-white border border-white/20 transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -116,17 +116,17 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
           type="button"
           onClick={nextSlide}
           aria-label="Next hero scene"
-          className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-[120] p-2.5 rounded-full bg-black/40 hover:bg-black/70 text-white border border-white/20 backdrop-blur-md transition-all"
+          className="hidden sm:flex absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/75 text-white border border-white/20 transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Bottom Actions & Slide Dots */}
-        <div className="absolute bottom-8 inset-x-0 z-[120] flex flex-col items-center gap-5 px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        {/* Bottom Actions & Mobile-Friendly Slide Controls */}
+        <div className="absolute bottom-5 sm:bottom-8 inset-x-0 z-20 flex flex-col items-center gap-4 px-4">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 w-full">
             <Link
               to="/explore"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white text-stone-950 hover:bg-stone-100 text-xs font-semibold uppercase tracking-widest shadow-xl transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg bg-white text-stone-950 hover:bg-stone-100 text-xs font-semibold uppercase tracking-widest shadow-lg transition-colors"
             >
               <Compass className="w-4 h-4" />
               <span>Explore Gallery</span>
@@ -134,27 +134,48 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
             </Link>
             <Link
               to="/upload"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-black/55 backdrop-blur-md text-white border border-white/25 hover:bg-black/75 text-xs font-semibold uppercase tracking-widest shadow-xl transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg bg-black/70 text-white border border-white/25 hover:bg-black/85 text-xs font-semibold uppercase tracking-widest shadow-lg transition-colors"
             >
               <Upload className="w-4 h-4" />
               <span>Submit Work</span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
-            {slides.map((slide, idx) => (
-              <button
-                key={slide.id}
-                type="button"
-                onClick={() => setActiveSlide(idx)}
-                aria-label={`Switch to ${slide.title} scene`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === activeSlide
-                    ? 'w-8 bg-white'
-                    : 'w-2 bg-white/40 hover:bg-white/70'
-                }`}
-              />
-            ))}
+          {/* Slide Dots + Mobile Prev/Next */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={prevSlide}
+              aria-label="Previous slide"
+              className="sm:hidden p-1.5 rounded-full bg-black/60 text-white border border-white/20"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              {slides.map((slide, idx) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  onClick={() => setActiveSlide(idx)}
+                  aria-label={`Switch to ${slide.title} scene`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx === activeSlide
+                      ? 'w-7 bg-white'
+                      : 'w-2 bg-white/45 hover:bg-white/75'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={nextSlide}
+              aria-label="Next slide"
+              className="sm:hidden p-1.5 rounded-full bg-black/60 text-white border border-white/20"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </ParallaxHero>

@@ -49,8 +49,23 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({
 
   const totalItems = items.length;
   const anglePerItem = 360 / Math.max(totalItems, 1);
-  // Expansive panoramic cylinder radius so cards curve gracefully in 3D
-  const radius = 600;
+  // Responsive panoramic cylinder radius so cards stay well-proportioned on phones and desktops
+  const [radius, setRadius] = useState(() => {
+    if (typeof window === 'undefined') return 600;
+    if (window.innerWidth < 640) return 320;
+    if (window.innerWidth < 1024) return 460;
+    return 600;
+  });
+
+  useEffect(() => {
+    const updateRadius = () => {
+      if (window.innerWidth < 640) setRadius(320);
+      else if (window.innerWidth < 1024) setRadius(460);
+      else setRadius(600);
+    };
+    window.addEventListener('resize', updateRadius);
+    return () => window.removeEventListener('resize', updateRadius);
+  }, []);
 
   // Silky-smooth continuous rotation animation loop (paused when off-screen)
   useEffect(() => {
@@ -68,6 +83,11 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({
       observer.observe(el);
     }
 
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     let lastTime = performance.now();
 
     const animate = (now: number) => {
@@ -75,7 +95,7 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({
       lastTime = now;
 
       if (isVisible && !isDraggingRef.current) {
-        if (autoplay && !isHoveredRef.current) {
+        if (autoplay && !prefersReducedMotion && !isHoveredRef.current) {
           targetRotationRef.current -= 5.5 * delta;
         }
 
@@ -200,12 +220,21 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({
           return (
             <div
               key={item.id || index}
+              role="button"
+              tabIndex={0}
+              aria-label={item.title || item.text || `Gallery item ${index + 1}`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleCardClick(item, index);
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleCardClick(item, index);
+                }
+              }}
               className={cn(
-                'absolute w-[165px] sm:w-[185px] md:w-[200px] h-[250px] sm:h-[280px] md:h-[305px] rounded-2xl cursor-pointer select-none',
+                'absolute w-[165px] sm:w-[185px] md:w-[200px] h-[250px] sm:h-[280px] md:h-[305px] rounded-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nature-accent',
                 isCenterActive ? 'shadow-2xl' : 'shadow-md'
               )}
               style={{

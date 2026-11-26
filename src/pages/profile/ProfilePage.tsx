@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import {
   MapPin,
   ShieldCheck,
@@ -20,9 +20,11 @@ import { Photo } from '@/types';
 import { useNatureStore } from '@/store/useNatureStore';
 import { useToast } from '@/context/useToast';
 import { NotFoundPage } from '@/pages/public/NotFoundPage';
+import { usePageMeta } from '@/lib/seo';
 
 export const ProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
+  const location = useLocation();
   const { showToast } = useToast();
 
   const profiles = useNatureStore((s) => s.profiles);
@@ -39,17 +41,48 @@ export const ProfilePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Only treat root /:username as a profile handle when prefixed with @ (unless matched under /profile/:username)
-  const isProfileRoute =
-    typeof window !== 'undefined' && window.location.pathname.startsWith('/profile/');
-  if (username && !username.startsWith('@') && !isProfileRoute) {
-    return <NotFoundPage />;
-  }
+  const isProfileRoute = location.pathname.startsWith('/profile/');
+  const isValidHandleFormat = !username || username.startsWith('@') || isProfileRoute;
 
   const cleanUsername = username?.replace(/^@/, '');
-  const profile =
-    (currentUser && currentUser.username === cleanUsername ? currentUser : undefined) ||
-    profiles.find((p) => p.username === cleanUsername) ||
-    profiles[0];
+  const profile = isValidHandleFormat
+    ? cleanUsername
+      ? (currentUser && currentUser.username.toLowerCase() === cleanUsername.toLowerCase()
+          ? currentUser
+          : undefined) ||
+        profiles.find((p) => p.username.toLowerCase() === cleanUsername.toLowerCase())
+      : profiles[0]
+    : undefined;
+
+  const profileJsonLd = React.useMemo(
+    () =>
+      profile
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'ProfilePage',
+            mainEntity: {
+              '@type': 'Person',
+              name: profile.full_name,
+              alternateName: `@${profile.username}`,
+              description: profile.bio || undefined,
+              image: profile.avatar_url || undefined,
+            },
+          }
+        : undefined,
+    [profile]
+  );
+
+  usePageMeta({
+    title: profile ? `${profile.full_name} (@${profile.username}) — NatureLens` : 'Photographer Not Found — NatureLens',
+    description: profile?.bio || 'Explore nature photography portfolios on NatureLens.',
+    image: profile?.avatar_url || undefined,
+    canonicalPath: profile ? `/@${profile.username}` : undefined,
+    jsonLd: profileJsonLd,
+  });
+
+  if (!isValidHandleFormat || !profile) {
+    return <NotFoundPage />;
+  }
   const userPhotos = photos.filter((p) => p.user_id === profile.id);
   const savedPhotos = photos.filter((p) => savedPhotoIds.includes(p.id));
   const isFollowing = followedUserIds.includes(profile.id);
@@ -65,7 +98,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       {/* Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-nature-surface border border-nature-border h-64 sm:h-80 shadow-sm">
         {profile.banner_url ? (

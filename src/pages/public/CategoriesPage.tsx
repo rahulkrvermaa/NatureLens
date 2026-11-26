@@ -8,7 +8,7 @@ export const CategoriesPage: React.FC = () => {
   const photos = useNatureStore((s) => s.photos);
 
   return (
-    <div className="min-h-screen py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <div className="max-w-2xl">
         <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-nature-accent mb-2">
           <Layers className="w-4 h-4" />

@@ -42,10 +42,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: true,
       is_editor_choice: true,
-      views_count: 28900,
-      likes_count: 3670,
-      comments_count: 145,
-      saves_count: 980,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-niels',
         username: 'niels_baars',
@@ -108,10 +108,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: true,
       is_editor_choice: true,
-      views_count: 34200,
-      likes_count: 4210,
-      comments_count: 182,
-      saves_count: 1140,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-clement',
         username: 'clement_roy',
@@ -174,10 +174,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: false,
       is_editor_choice: true,
-      views_count: 18400,
-      likes_count: 2210,
-      comments_count: 76,
-      saves_count: 540,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-wolfgang',
         username: 'wolfgang_h',
@@ -240,10 +240,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: true,
       is_editor_choice: true,
-      views_count: 24500,
-      likes_count: 2980,
-      comments_count: 110,
-      saves_count: 760,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-alex',
         username: 'alex_azabache',
@@ -306,10 +306,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: true,
       is_editor_choice: true,
-      views_count: 31200,
-      likes_count: 3840,
-      comments_count: 162,
-      saves_count: 1020,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-daniel',
         username: 'daniel_kordan',
@@ -372,10 +372,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: true,
       is_editor_choice: true,
-      views_count: 27800,
-      likes_count: 3410,
-      comments_count: 138,
-      saves_count: 890,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-2',
         username: 'marcus_savanna',
@@ -438,10 +438,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: false,
       is_editor_choice: true,
-      views_count: 25400,
-      likes_count: 3120,
-      comments_count: 118,
-      saves_count: 820,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-pascal',
         username: 'pascal_m',
@@ -504,10 +504,10 @@ const ANIMAL_GALLERY_PHOTOS: Array<CircularGalleryItem & { fullPhoto: Photo }> =
       status: 'published',
       is_featured: true,
       is_editor_choice: true,
-      views_count: 29400,
-      likes_count: 3560,
-      comments_count: 135,
-      saves_count: 940,
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      saves_count: 0,
       author: {
         id: 'usr-martin',
         username: 'martin_wettstein',
@@ -548,7 +548,7 @@ export const CircularGallerySection: React.FC = () => {
   };
 
   return (
-    <section className="pt-16 sm:pt-20 pb-14 sm:pb-18 bg-nature-dark border-t border-nature-border relative overflow-hidden">
+    <section className="pt-16 sm:pt-20 pb-14 sm:pb-20 bg-nature-dark border-t border-nature-border relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Minimal Centered Header Matching Reference Image */}
         <div className="text-center max-w-2xl mx-auto space-y-1">
@@ -575,7 +575,6 @@ export const CircularGallerySection: React.FC = () => {
             bend={0}
             onItemClick={handleItemClick}
             autoplay={true}
-            className="h-[460px] sm:h-[500px] md:h-[530px]"
           />
         </div>
       </div>
